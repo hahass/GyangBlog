@@ -12,7 +12,7 @@
     <meta name="keywords" content="Fechin,"> 
     <meta name="description" content="java虚拟机在运行java程序的时候，会将内存划分成不同的数据区域，每个区域负责不同的功能，通常分为：方法区、虚拟机栈、本地方法栈
 
-"> 
+1 程序计数器​    程序计数器是一块非常小的内存，它是当前,"> 
     <meta name="author" content="John Doe"> 
     <link rel="alternative" href="atom.xml" title="Hexo" type="application/atom+xml"> 
     <link rel="icon" href="/GyangBlog/img/favicon.png"> 
@@ -66,6 +66,7 @@
         <div class="content markdown">
             <p>java虚拟机在运行java程序的时候，会将内存划分成不同的数据区域，每个区域负责不同的功能，通常分为：方法区、虚拟机栈、本地方法栈</p>
 <p><img src="/GyangBlog/2019/05/21/java-jvm-1/./jvm_area.png" alt="jvm_area.png"></p>
+<h3 id="1-程序计数器"><a href="#1-程序计数器" class="headerlink" title="1 程序计数器"></a>1 程序计数器</h3><p>​    程序计数器是一块非常小的内存，它是当前线程所执行的字节码的行号指示器。在虚拟机的概念里，字节码解释器是通过改变这个计数器的值来选取下一个需要执行的字节码指令， 分支、循环、异常处理、线程恢复都依赖这个程序计数器来完成。</p>
 
             <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
             <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="false">
