@@ -14,7 +14,7 @@
 所需材料
 博客的框架使用的是 hexo
 hexo 需要依托在 node.js ，所以需要先安装nodejs
-git,"> 
+Git,"> 
     <meta name="author" content="John Doe"> 
     <link rel="alternative" href="atom.xml" title="Hexo" type="application/atom+xml"> 
     <link rel="icon" href="/GyangBlog/img/favicon.png"> 
@@ -70,7 +70,7 @@ git,">
 <h2 id="所需材料"><a href="#所需材料" class="headerlink" title="所需材料"></a>所需材料</h2><ul>
 <li>博客的框架使用的是 hexo</li>
 <li>hexo 需要依托在 node.js ，所以需要先安装nodejs</li>
-<li>gitHubPage: 网站在gitHub上托管</li>
+<li>GitHubPage: 网站在gitHub上托管</li>
 <li>git </li>
 </ul>
 <h2 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h2><h3 id="1-安装node-js"><a href="#1-安装node-js" class="headerlink" title="1.安装node.js"></a>1.安装node.js</h3><p>打开官网：<a href="https://nodejs.org/en/" target="_blank" rel="noopener">https://nodejs.org/en/</a> , 下载稳定版本的进行安装。</p>
@@ -79,11 +79,14 @@ git,">
 <h3 id="2-安装-git"><a href="#2-安装-git" class="headerlink" title="2.安装 git"></a>2.安装 git</h3><p>因为需要将我们的静态网站，部署到github上， 所有需要现在本地安装git.</p>
 <h3 id="3-下载hexo"><a href="#3-下载hexo" class="headerlink" title="3.下载hexo"></a>3.下载hexo</h3><p>现在本地建立一个文件夹，进入文件夹，右键选择 Git bash here</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<h3 id="常用操作"><a href="#常用操作" class="headerlink" title="常用操作"></a>常用操作</h3><ul>
-<li>创建新的文章<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">//会在_posts文件加下创建出一个文件夹（存储文章中图片），和一个md文件</span><br><span class="line">hexo n &quot;firstBlog&quot;</span><br></pre></td></tr></table></figure>
+<h3 id="4-常用操作"><a href="#4-常用操作" class="headerlink" title="4.常用操作"></a>4.常用操作</h3><ul>
+<li><p>创建新的文章</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo n &quot;firstBlog&quot;</span><br></pre></td></tr></table></figure>
+<p>  会在_posts文件加下创建出一个文件夹（存储文章中图片），和一个md文件,使用下面代码可以引入图片</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">![newfirstBlog.png](./newfirstBlog.png)</span><br></pre></td></tr></table></figure>
+<p>  <img src="/GyangBlog/2019/05/17/firstBlog/./newfirstBlog.png" alt="newfirstBlog.png"></p>
 </li>
 </ul>
-<p><img src="/GyangBlog/2019/05/17/firstBlog/./newfirstBlog.png" alt="newfirstBlog.png"></p>
 
             <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
             <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="false">
