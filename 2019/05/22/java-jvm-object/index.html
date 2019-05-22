@@ -1,0 +1,208 @@
+
+<!DOCTYPE html>
+<html lang="java" class="loading">
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>JVM学习笔记-java对象 - Gyang的技术笔记</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="google" content="notranslate">
+    <meta name="keywords" content="Fechin,"> 
+    <meta name="description" content="&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;我们在学习了java虚拟机的内存知识后，我们接下来研究下对象的在java堆中分配、布局和访问的全过程。
+对象的创建&amp;nbsp; &amp;nbsp; &amp;,"> 
+    <meta name="author" content="Gyang"> 
+    <link rel="alternative" href="atom.xml" title="Gyang的技术笔记" type="application/atom+xml"> 
+    <link rel="icon" href="/GyangBlog/img/favicon.png"> 
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+    <link rel="stylesheet" href="/GyangBlog/css/diaspora.css">
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({
+              google_ad_client: "ca-pub-8691406134231910",
+              enable_page_level_ads: true
+         });
+    </script>
+    <script async custom-element="amp-auto-ads" src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js">
+    </script>
+</head>
+</html>
+<body class="loading">
+    <span id="config-title" style="display:none">Gyang的技术笔记</span>
+    <div id="loader"></div>
+    <div id="single">
+    <div id="top" style="display: block;">
+    <div class="bar" style="width: 0;"></div>
+    <a class="icon-home image-icon" href="javascript:;" data-url="https://hahass.github.io/GyangBlog"></a>
+    <div title="播放/暂停" class="icon-play"></div>
+    <h3 class="subtitle">JVM学习笔记-java对象</h3>
+    <div class="social">
+        <!--<div class="like-icon">-->
+            <!--<a href="javascript:;" class="likeThis active"><span class="icon-like"></span><span class="count">76</span></a>-->
+        <!--</div>-->
+        <div>
+            <div class="share">
+                <a title="获取二维码" class="icon-scan" href="javascript:;"></a>
+            </div>
+            <div id="qr"></div>
+        </div>
+    </div>
+    <div class="scrollbar"></div>
+</div>
+
+    <div class="section">
+        <div class="article">
+    <div class="main">
+        <h1 class="title">JVM学习笔记-java对象</h1>
+        <div class="stuff">
+            <span>五月 22, 2019</span>
+            
+  <ul class="post-tags-list"><li class="post-tags-list-item"><a class="post-tags-list-link" href="/GyangBlog/tags/JVM/">JVM</a></li></ul>
+
+
+        </div>
+        <div class="content markdown">
+            <p>&nbsp; &nbsp; &nbsp; &nbsp;我们在学习了java虚拟机的内存知识后，我们接下来研究下对象的在java堆中分配、布局和访问的全过程。</p>
+<h3 id="对象的创建"><a href="#对象的创建" class="headerlink" title="对象的创建"></a><font color="#008000">对象的创建</font></h3><p>&nbsp; &nbsp; &nbsp; &nbsp;在我们开发的过程中，用到的最多的当然还是通过 new 关键字去创建一个对象，那么在创建是一个怎样的过程呢？</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;1.在执行 new 指令时，会去检查这个指令的参数是否能在常量池中定位到一个类的符号引用。并且检查这个符号引入代表的类是否已被加载、解析和初始化。如果没有就需要就行响应的类加载过程。（加载过程后面会说）</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;2.在类加载检查通过后，会为新生的对象分配内存空间，对象所需要的内存空间，在类加载完成后便可完全确定下来，为对象分配空间等同于在java堆中划分出一块内存。分配内存空间有两种分配方式：</p>
+<ul>
+<li>指针碰撞</li>
+</ul>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;java堆的内存空间是<strong>规整</strong>的，使用的内存空间放在一起，空闲的内存空间放在一起，中间使用一个指针作为分界点的指示器。所分配的内存就是仅仅把指针箱空闲的那边挪动一段与对象大小相等的距离。</p>
+<ul>
+<li>空闲列表</li>
+</ul>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;java堆内存空间不是<strong>规整</strong>的，使用的和没有使用的交错在一起，虚拟机会维护一个列表，记录上哪些内存块是可用的，在分配的时候从列表中找到一个块足够大的空间划分给对象实例，并更新列表上的记录。</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; 具体使用哪种方式取决于java堆是否是规整的，而是否规整取决于垃圾收集器是否带有压缩整理功能决定。所以在使用Serial、ParNew等带有Compact过程的收集器，系统使用分配算法是指针碰撞，而使用CMS这种基于Mark-Sweep算法的采用空闲列表。<br>&nbsp; &nbsp; &nbsp; &nbsp;在划分空间的时候，如果频繁的创建对象，就会出现线程安全问题。比如两个线程A和B，虚拟机在为A分配内存的时候，指针还没有来得及修改，对象B同时使用了原来的指针来分配内存。决定方法有两种，<br>一种是使用CAS配上失败重试的方式保证更新操作的原子性。<br>另一种是按照线程的维度去分配空间。每个线程会预先分配到一小块的内存，称为<font color="red">本地线程分配缓冲（Thread Local Allocation Buffer,TLAB）</font>。需要分配内存的时候，在该线程的TLAB上去分配，只有TLAB用完了，并分配新的TLAB才需要同步锁定。通过-XX:+/-UseTLAB参数设置是否使用TLAB。</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;3.分配内存后，虚拟机需要将分配的内存空间都初始化为零值。从而保证对象的实例字段在java代码中可以不赋初始值就可以直接使用。</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;4.接下来要对对象进行必要的设置，例如这个对象是哪个类的实例，如何才能找到类的元数据信息、对象的哈希码、对象的GC分代年龄等信息，这些信息都存放在对象头中。</p>
+<p>&nbsp; &nbsp; &nbsp; &nbsp;5.完成上述工作，需要执行 init 方法，把对象按照程序员的意愿进行初始化。这样一个真正的对象才算完全生产出来。</p>
+<h3 id="对象的内存布局"><a href="#对象的内存布局" class="headerlink" title="对象的内存布局"></a><font color="#008000">对象的内存布局</font></h3><p>&nbsp; &nbsp; &nbsp; &nbsp;对象的存储布局分为三个区域：对象头（Header）、实例数据（Instant Data）和对其填充（Padding）</p>
+<h4 id="对象头"><a href="#对象头" class="headerlink" title="对象头"></a>对象头</h4><p>&nbsp; &nbsp; &nbsp; &nbsp;第一部分用于存储对象自身运行时数据，哈希码、GC分代年龄、锁状态标志、线程持有的锁、偏向线程ID、偏向时间戳等等，官方称为“Mark Word”。这部分数据的长度在32位和64位的虚拟机上分别是32bit 和 64bit。Mark Word 被设计成一个非固定的数据结构以便在极小的空间内存储更多的信息。他会根据对象的状态复用自己的存储空间。比如，在32位的HotSpot虚拟机上，如果对象处于未被锁定的状态下，那么Mark Word的32bit空间中，25bit用于存储对象的哈希码，4bit用于存储对象的分代年龄，2bit存储锁标志位，1bit固定为0。而其他状态下的存储如下。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">存储内容</th>
+<th style="text-align:center">标志位</th>
+<th style="text-align:center">状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">对象哈希码、对象分代年龄</td>
+<td style="text-align:center">01</td>
+<td style="text-align:center">未锁定</td>
+</tr>
+<tr>
+<td style="text-align:center">指向锁记录的指针</td>
+<td style="text-align:center">00</td>
+<td style="text-align:center">轻量级锁</td>
+</tr>
+<tr>
+<td style="text-align:center">执行重量级锁的指针</td>
+<td style="text-align:center">10</td>
+<td style="text-align:center">膨胀（重量级锁定）</td>
+</tr>
+<tr>
+<td style="text-align:center">空，不需要记录信息</td>
+<td style="text-align:center">11</td>
+<td style="text-align:center">GC标志</td>
+</tr>
+<tr>
+<td style="text-align:center">偏向线程ID、偏向时间戳、对象分代年龄</td>
+<td style="text-align:center">01</td>
+<td style="text-align:center">可偏向</td>
+</tr>
+</tbody>
+</table>
+<p>&nbsp; &nbsp; &nbsp; &nbsp; 另一部分是类型指针。即对象指向它的类元数据的指针，虚拟机通过这个指针确定这个对象是哪个类的实例。</p>
+
+            <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
+            <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="false">
+                <source type="audio/mpeg" src>
+            </audio>
+            
+                <ul id="audio-list" style="display:none">
+                    
+                        <li title="0" data-url="http://link.hhtjim.com/163/5146554.mp3"></li>
+                    
+                        <li title="1" data-url="http://link.hhtjim.com/qq/001faIUs4M2zna.mp3"></li>
+                    
+                </ul>
+            
+        </div>
+        
+    <div id="gitalk-container" class="comment link" data-ae="false" data-ci data-cs data-r data-o data-a data-d="false">查看评论</div>
+
+
+    </div>
+    
+</div>
+
+
+    </div>
+</div>
+</body>
+<script src="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="/GyangBlog/js/plugin.js"></script>
+<script src="/GyangBlog/js/diaspora.js"></script>
+<link rel="stylesheet" href="/GyangBlog/photoswipe/photoswipe.css">
+<link rel="stylesheet" href="/GyangBlog/photoswipe/default-skin/default-skin.css">
+<script src="/GyangBlog/photoswipe/photoswipe.min.js"></script>
+<script src="/GyangBlog/photoswipe/photoswipe-ui-default.min.js"></script>
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+            <div class="pswp__top-bar">
+                <!--  Controls are self-explanatory. Order can be changed. -->
+                <div class="pswp__counter"></div>
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+</html>
