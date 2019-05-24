@@ -1,0 +1,162 @@
+
+<!DOCTYPE html>
+<html lang="java" class="loading">
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>垃圾回收机制 - Gyang的技术笔记</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="google" content="notranslate">
+    <meta name="keywords" content="Fechin,"> 
+    <meta name="description" content="&amp;#160; &amp;#160; &amp;#160; &amp;#160;我们来学习一下jvm中比较重要的一块内容-GC。那么我们学习了GC与内存分配，能做什么呢？ 当我们需要排除各种内存溢出、内存泄漏等问题时，当垃圾,"> 
+    <meta name="author" content="Gyang"> 
+    <link rel="alternative" href="atom.xml" title="Gyang的技术笔记" type="application/atom+xml"> 
+    <link rel="icon" href="/GyangBlog/img/favicon.png"> 
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+    <link rel="stylesheet" href="/GyangBlog/css/diaspora.css">
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({
+              google_ad_client: "ca-pub-8691406134231910",
+              enable_page_level_ads: true
+         });
+    </script>
+    <script async custom-element="amp-auto-ads" src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js">
+    </script>
+</head>
+</html>
+<body class="loading">
+    <span id="config-title" style="display:none">Gyang的技术笔记</span>
+    <div id="loader"></div>
+    <div id="single">
+    <div id="top" style="display: block;">
+    <div class="bar" style="width: 0;"></div>
+    <a class="icon-home image-icon" href="javascript:;" data-url="https://hahass.github.io/GyangBlog"></a>
+    <div title="播放/暂停" class="icon-play"></div>
+    <h3 class="subtitle">垃圾回收机制</h3>
+    <div class="social">
+        <!--<div class="like-icon">-->
+            <!--<a href="javascript:;" class="likeThis active"><span class="icon-like"></span><span class="count">76</span></a>-->
+        <!--</div>-->
+        <div>
+            <div class="share">
+                <a title="获取二维码" class="icon-scan" href="javascript:;"></a>
+            </div>
+            <div id="qr"></div>
+        </div>
+    </div>
+    <div class="scrollbar"></div>
+</div>
+
+    <div class="section">
+        <div class="article">
+    <div class="main">
+        <h1 class="title">垃圾回收机制</h1>
+        <div class="stuff">
+            <span>五月 24, 2019</span>
+            
+  <ul class="post-tags-list"><li class="post-tags-list-item"><a class="post-tags-list-link" href="/GyangBlog/tags/JVM/">JVM</a></li></ul>
+
+
+        </div>
+        <div class="content markdown">
+            <p>&#160; &#160; &#160; &#160;我们来学习一下jvm中比较重要的一块内容-GC。那么我们学习了GC与内存分配，能做什么呢？ 当我们需要排除各种内存溢出、内存泄漏等问题时，当垃圾收集成为系统大道更高并发的瓶颈时，我们就需要对GC实施必要的监控和调节。</p>
+<h2 id="哪些对象可变回收"><a href="#哪些对象可变回收" class="headerlink" title="哪些对象可变回收"></a>哪些对象可变回收</h2><p>&#160; &#160; &#160; &#160;垃圾回收器会定期回收堆内存中不在被使用的对象，通常判断对象是否需要被回收，有两种方式，引用计数法和可达性分析</p>
+<h3 id="引用计数法"><a href="#引用计数法" class="headerlink" title="引用计数法"></a>引用计数法</h3><p>&#160; &#160; &#160; &#160;每个对象都有一个引用计数器，每当有一个地方引用该对象，引用计数就会+1，如果引用失效就会-1，当引用计数值为0的时候，这个对象就不在被使用。这种实现方式简单，判断效率高。但是他<font color="red">存在一个问题，就是如果对象相互循环引用，那么这些对象就不能被回收</font>。java虚拟机没有采用这种实现方式。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">public class TestGC&#123;</span><br><span class="line"></span><br><span class="line">    public Object instance = null;</span><br><span class="line">    private byte[] bigSize = new byte[1024*1024*2];</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args)&#123;</span><br><span class="line"></span><br><span class="line">        // o1 和 o2 相互引用</span><br><span class="line">        TestGC o1 = new TestGC();</span><br><span class="line">        TestGC o2 = new TestGC();</span><br><span class="line">        o1.instance = o2;</span><br><span class="line">        o2.instance = o1;</span><br><span class="line"></span><br><span class="line">        //此时两个对象都不能再被访问，但是他们相互引用对方，引用计数值都不是0</span><br><span class="line">        o1 = null;</span><br><span class="line">        o2 = null;</span><br><span class="line">        //假设在这里发生GC，他们并不会被回收</span><br><span class="line">        System.gc();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="可达性分析"><a href="#可达性分析" class="headerlink" title="可达性分析"></a>可达性分析</h3><p>&#160; &#160; &#160; &#160;从GC Roots开始向下搜索，搜索走过的路径称为引用链，当无法从GC Roots到达某个对象，那么这个对象就是不可达，需要被回收。</p>
+<p>java中，以下可作为GC Roots对象：</p>
+<ul>
+<li>虚拟机栈（栈帧中国的本地变量表）中引用的对象<br>-方法区中类静态属性引用的对象<br>-方法区中常量引用的对象<br>-本地方法栈中JNI引用的对象</li>
+</ul>
+<p><img src="/GyangBlog/2019/05/24/java-jvm-gc/./GCRoots.png" alt="GC Roots"></p>
+
+            <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
+            <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="false">
+                <source type="audio/mpeg" src>
+            </audio>
+            
+                <ul id="audio-list" style="display:none">
+                    
+                        <li title="0" data-url="http://link.hhtjim.com/163/5146554.mp3"></li>
+                    
+                        <li title="1" data-url="http://link.hhtjim.com/qq/001faIUs4M2zna.mp3"></li>
+                    
+                </ul>
+            
+        </div>
+        
+    <div id="gitalk-container" class="comment link" data-ae="false" data-ci data-cs data-r data-o data-a data-d="false">查看评论</div>
+
+
+    </div>
+    
+</div>
+
+
+    </div>
+</div>
+</body>
+<script src="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="/GyangBlog/js/plugin.js"></script>
+<script src="/GyangBlog/js/diaspora.js"></script>
+<link rel="stylesheet" href="/GyangBlog/photoswipe/photoswipe.css">
+<link rel="stylesheet" href="/GyangBlog/photoswipe/default-skin/default-skin.css">
+<script src="/GyangBlog/photoswipe/photoswipe.min.js"></script>
+<script src="/GyangBlog/photoswipe/photoswipe-ui-default.min.js"></script>
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+            <div class="pswp__top-bar">
+                <!--  Controls are self-explanatory. Order can be changed. -->
+                <div class="pswp__counter"></div>
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+</html>
