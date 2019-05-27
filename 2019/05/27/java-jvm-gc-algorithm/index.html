@@ -5,12 +5,16 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>JVM学习笔记-垃圾回收机制 - Gyang的技术笔记</title>
+    <title>垃圾收集算法 - Gyang的技术笔记</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="google" content="notranslate">
     <meta name="keywords" content="Fechin,"> 
-    <meta name="description" content="&amp;#160; &amp;#160; &amp;#160; &amp;#160;我们来学习一下jvm中比较重要的一块内容-GC。那么我们学习了GC与内存分配，能做什么呢？ 当我们需要排除各种内存溢出、内存泄漏等问题时，当垃圾,"> 
+    <meta name="description" content="1.标记-清除算法标记-清除算法是最基础的收集算法。主要分为两步：标记，清除。首先标记处需要回收的对象，标记完成后统一回收被标记的对象。
+缺点
+
+效率问题：标记和清除效率都不高
+空间问题：标记清除后,"> 
     <meta name="author" content="Gyang"> 
     <link rel="alternative" href="atom.xml" title="Gyang的技术笔记" type="application/atom+xml"> 
     <link rel="icon" href="/GyangBlog/img/favicon.png"> 
@@ -35,7 +39,7 @@
     <div class="bar" style="width: 0;"></div>
     <a class="icon-home image-icon" href="javascript:;" data-url="https://hahass.github.io/GyangBlog"></a>
     <div title="播放/暂停" class="icon-play"></div>
-    <h3 class="subtitle">JVM学习笔记-垃圾回收机制</h3>
+    <h3 class="subtitle">垃圾收集算法</h3>
     <div class="social">
         <!--<div class="like-icon">-->
             <!--<a href="javascript:;" class="likeThis active"><span class="icon-like"></span><span class="count">76</span></a>-->
@@ -53,45 +57,31 @@
     <div class="section">
         <div class="article">
     <div class="main">
-        <h1 class="title">JVM学习笔记-垃圾回收机制</h1>
+        <h1 class="title">垃圾收集算法</h1>
         <div class="stuff">
-            <span>五月 24, 2019</span>
+            <span>五月 27, 2019</span>
             
   <ul class="post-tags-list"><li class="post-tags-list-item"><a class="post-tags-list-link" href="/GyangBlog/tags/JVM/">JVM</a></li></ul>
 
 
         </div>
         <div class="content markdown">
-            <p>&#160; &#160; &#160; &#160;我们来学习一下jvm中比较重要的一块内容-GC。那么我们学习了GC与内存分配，能做什么呢？ 当我们需要排除各种内存溢出、内存泄漏等问题时，当垃圾收集成为系统大道更高并发的瓶颈时，我们就需要对GC实施必要的监控和调节。</p>
-<h3 id="哪些对象可变回收"><a href="#哪些对象可变回收" class="headerlink" title="哪些对象可变回收"></a>哪些对象可变回收</h3><p>&#160; &#160; &#160; &#160;垃圾回收器会定期回收堆内存中不在被使用的对象，通常判断对象是否需要被回收，有两种方式，引用计数法和可达性分析</p>
-<h4 id="引用计数法"><a href="#引用计数法" class="headerlink" title="引用计数法"></a>引用计数法</h4><p>&#160; &#160; &#160; &#160;每个对象都有一个引用计数器，每当有一个地方引用该对象，引用计数就会+1，如果引用失效就会-1，当引用计数值为0的时候，这个对象就不在被使用。这种实现方式简单，判断效率高。但是他<font color="red">存在一个问题，就是如果对象相互循环引用，那么这些对象就不能被回收</font>。java虚拟机没有采用这种实现方式。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">public class TestGC&#123;</span><br><span class="line"></span><br><span class="line">    public Object instance = null;</span><br><span class="line">    private byte[] bigSize = new byte[1024*1024*2];</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args)&#123;</span><br><span class="line"></span><br><span class="line">        // o1 和 o2 相互引用</span><br><span class="line">        TestGC o1 = new TestGC();</span><br><span class="line">        TestGC o2 = new TestGC();</span><br><span class="line">        o1.instance = o2;</span><br><span class="line">        o2.instance = o1;</span><br><span class="line"></span><br><span class="line">        //此时两个对象都不能再被访问，但是他们相互引用对方，引用计数值都不是0</span><br><span class="line">        o1 = null;</span><br><span class="line">        o2 = null;</span><br><span class="line">        //假设在这里发生GC，他们并不会被回收</span><br><span class="line">        System.gc();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="可达性分析"><a href="#可达性分析" class="headerlink" title="可达性分析"></a>可达性分析</h4><p>&#160; &#160; &#160; &#160;从GC Roots开始向下搜索，搜索走过的路径称为引用链，当无法从GC Roots通过引用链到达某个对象，那么这个对象就是不可达，需要被回收。</p>
-<p>java中，以下可作为GC Roots对象：</p>
+            <h3 id="1-标记-清除算法"><a href="#1-标记-清除算法" class="headerlink" title="1.标记-清除算法"></a>1.标记-清除算法</h3><p>标记-清除算法是最基础的收集算法。主要分为两步：标记，清除。首先标记处需要回收的对象，标记完成后统一回收被标记的对象。</p>
+<p><font color="red">缺点</font></p>
 <ul>
-<li>虚拟机栈（栈帧中国的本地变量表）中引用的对象</li>
-<li>方法区中类静态属性引用的对象</li>
-<li>方法区中常量引用的对象</li>
-<li>本地方法栈中JNI引用的对象</li>
+<li>效率问题：标记和清除效率都不高</li>
+<li>空间问题：标记清除后会产生大量不连续的内存碎片。如果程序在运行时需要分配较大的对象，无法找到足够大的内存就不能不提前触发另一次垃圾收集动作。</li>
 </ul>
-<p><img src="/GyangBlog/2019/05/24/java-jvm-gc/./GCRoots.png" alt="GC Roots"></p>
-<h3 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h3><p>jdk1.2之后，java对引用进行了扩展，将引用分为强引用，软引用，弱引用和虚引用。四种引用强度一次逐渐减弱。</p>
-<ul>
-<li>强引用</li>
-</ul>
-<p>强引用在java代码中是最常见的， 当我们new一个对象的时候，就是一个强引用。只要强引用存在，垃圾回收机制就不会回收对象。</p>
-<ul>
-<li>软引用</li>
-</ul>
-<p>软引用是描述一些有用但是非必须的对象。系统在发生内存溢出之前，将会把这些对象列进回收范围之中进行第二次回收。如果系统存在足够的内存，这些对象不会被回收，如果内存不足，则会回收这些对象。java提供SoftReference类实现软引用。</p>
-<ul>
-<li>弱引用</li>
-</ul>
-<p>弱引用描述非必需对象的。弱引用的对象只能生存到下一次垃圾回收之前。当开始垃圾回收时，不过内存是否足够都会回收弱引用的对象。java提供WeakReference类来实现弱引用。</p>
-<ul>
-<li>虚引用</li>
-</ul>
-<p>一个对象是否有虚引用的存在，完全不会对其生存时间构成影响，也无法通过虚引用来取得一个对象实例。设置虚引用主要是为了该对象在垃圾收集器回收会收到一个系统通知。java提供PhantomReference类来实现。</p>
+<p><img src="/GyangBlog/2019/05/27/java-jvm-gc-algorithm/biaojiqingchu1.png" alt="biaojiqingchu1.png"></p>
+<p><img src="/GyangBlog/2019/05/27/java-jvm-gc-algorithm/biaojiqingchu2.png" alt="biaojiqingchu2.png"></p>
+<h3 id="2-复制算法"><a href="#2-复制算法" class="headerlink" title="2.复制算法"></a>2.复制算法</h3><p>复制算法可以更好的解决效率的问题。它将内存分为两块同等大小的区域。每次只回收其中一块区域。当垃圾回收器开始回收时，会将使用的一块内存中还存活的对象复制到另一块内存，然后一次清空这块使用的内存，每次都是对整个半区进行内存回收，内存分配不用考虑内存碎片的问题，只要一动堆顶的指针，按顺序分配内存即可，简单，高效。</p>
+<p>现在商业虚拟机都采用这种收集算法来回收新生代。通常将内存分为一块较大的Eden空间和两块比较小的Survivor空间，每次使用Eden和其中的一块Survivor，回收时，将Eden和Survivor中还存活的对象一次性复制到另一块Survivor空间上，最后清理掉Eden和刚才用到的Survivor空间。HotSpot默认Eden和Survivor比例是8:1，也就是每次新生代中可用空间为整个新生代容量的90%，只有10%的内存会被浪费。当Survivor空间不足时，需要依赖其他内存（老年代）进行分担担保。</p>
+<p><img src="/GyangBlog/2019/05/27/java-jvm-gc-algorithm/fuzhi1.png" alt="fuzhi1.png"></p>
+<p><img src="/GyangBlog/2019/05/27/java-jvm-gc-algorithm/fuzhi2.png" alt="fuzhi2.png"></p>
+<h3 id="3-标记-整理算法"><a href="#3-标记-整理算法" class="headerlink" title="3.标记-整理算法"></a>3.标记-整理算法</h3><p>标记-整理算法，标记的过程和标记-清除算法一下，后续步骤不是直接回收对象，而是让所有存活的对象都向一端一动，然后直接清除掉端边界以外的内存。</p>
+<p><img src="/GyangBlog/2019/05/27/java-jvm-gc-algorithm/biaojizhengli.png" alt="biaojizhengli.png"></p>
+<p><img src="/GyangBlog/2019/05/27/java-jvm-gc-algorithm/biaojizhengli1.png" alt="biaojizhengli1.png"></p>
+<h3 id="4-分代收集算法"><a href="#4-分代收集算法" class="headerlink" title="4.分代收集算法"></a>4.分代收集算法</h3><p>当前商业虚拟机的垃圾收集都采用分代收集算法，根据对象存活周期的不同将内存分为几块，java堆分为新生代和老年代，这样根据各个年代的特点采用适当的收集算法。新生代中每次都会有大量的对象死去，是有少量的存活，就选用复制算法。老年代中因为对象存活率高，没有额外的空间进行分配担保，就需要使用标记-清理或者标记整理算法进行回收。</p>
 
             <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
             <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="false">
