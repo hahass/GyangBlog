@@ -78,22 +78,93 @@
 <h3 id="安全区域"><a href="#安全区域" class="headerlink" title="安全区域"></a>安全区域</h3><p>安全区域是指在一段代码片段之中，引用关系不会发生变化。在这个区域中的任意地方开始GC都是安全的。<br>在线程执行到安全区域中的代码时，首先标识自己进入了安全区域，当在这段时间里JVM要发起GC时，就不用管标识自己为安全区域状态的线程了，在线程要离开安全区域，要检查是否已经完成了根节点枚举，如果完成了那现场就继续执行，否则必须等待直到收到可以离开安全区域的信号位置。</p>
 <h2 id="垃圾收集器"><a href="#垃圾收集器" class="headerlink" title="垃圾收集器"></a>垃圾收集器</h2><p>收集算法是内存回收的方法理论，垃圾收集器就是内存回收的具体实现。java虚拟机规范没有对垃圾收集器如何实现有规定，因此不同厂商、版本提供的垃圾收集器可能大不相同。</p>
 <blockquote>
-<p>Serial(/sɪəriəl/)收集器</p>
+<font color="green">Serial(/sɪəriəl/)收集器</font>
 </blockquote>
 <p>Serial 收集器是最基本、历史最悠久的收集器。这个收集器是一个单线程的收集器，单线程的意义不仅仅说明它是只会使用一个CPU或一条收集线程去完成垃圾收集工作，更重要的是它进行垃圾收集时，必须暂停其他所有的工作线程，直到收集完成。</p>
 <p><img src="/GyangBlog/2019/05/27/java-jvm-gc-algorithm-1/./serial.png" alt="serial.png"></p>
 <p>目前为止，Serial依然是虚拟机运行在Client模式下的默认新生代收集器。<br>优点：<br>简单，高效。对于限定单个CPU的环境来说，Serial收集器由于没有线程交互的开销，专心做垃圾收集自然可以获得最高的单线程收集小路。</p>
 <blockquote>
-<p>ParNew收集器</p>
+<font color="green">ParNew收集器</font>
 </blockquote>
 <p>parNew收集器其实就是Serial收集器的多线程版本，HotSpot第一款真正意义上的并发收集器</p>
 <p><img src="/GyangBlog/2019/05/27/java-jvm-gc-algorithm-1/./parnew.png" alt="parnew.png"></p>
-<p>参数：<br>-XX:+UseConcMarkSweepGC：选择后的默认新生代收集器<br>-XX:+UserParNewGC:强制指定<br>-XX:ParallelGCThreads：限制垃圾收集线程数</p>
+<p>参数：</p>
+<ul>
+<li>-XX:+UseConcMarkSweepGC：选择后的默认新生代收集器</li>
+<li>-XX:+UserParNewGC:强制指定</li>
+<li>-XX:ParallelGCThreads：限制垃圾收集线程数</li>
+</ul>
 <blockquote>
-<p>Parallel Scavenge收集器</p>
+<font color="green">Parallel Scavenge收集器</font>
 </blockquote>
 <p>新生代收集器、使用复制算法、并行的多线程收集器。</p>
 <p>特点：<br>关注点与其他收集器不同。CMS等收集器关注点是尽可能的缩短垃圾回收时用户线程停顿的时间，而Parallel Scavenge收集器目的则是达到一个可控制的吞吐量。吞吐量就是CPU运行用户代码时间与CPU总消耗时间的比值，即吞吐量=运行代码时间/(运行代码时间+垃圾收集时间)。</p>
+<p>停顿时间越短越适合需要与用户交互的程序，良好的响应速度能提升用户体验，而高吞吐量则可以高效的利用CPU时间，尽快完成程序的运算任务，主要适合后台运算而不需要太多交互的任务。</p>
+<p>参数：</p>
+<ul>
+<li>-XX:MaxGCPauseMillis:控制最大垃圾收集停顿时间</li>
+</ul>
+<p>参数值是一个大于0的毫米数，收集器尽可能保证内存回收花费的时间不超过设定值。不是说参数调至越小垃圾收集的时间越快，GC停顿时间压缩是以牺牲吞吐量和新生代空间来换取的。</p>
+<ul>
+<li><p>-XX:GCTimeRatil:设置吞吐量大小<br>参数值是一个大于0且小于100的整数，也就是垃圾收集时间占总时间的比率，相当于吞吐量倒数，如果参数设置为19，那么预先的最大GC时间占总时间的5%（1/(1+19)）,默认为99，就是允许最大1%（1/(1+99)）的垃圾收集时间。</p>
+</li>
+<li><p>-XX:UseAdaptiveSizePolicy:这个一个开关参数，打开后，不需要手动指定新生代的大小、Eden和Survivor区的比例，晋升老年代对象年龄等细节参数，会动态调整这些参数以提供最适合的停顿时间或者最大的吞吐量。</p>
+</li>
+</ul>
+<blockquote>
+<font color="green">Serial Old 收集器</font>
+</blockquote>
+<p>Serial Older 是 Serial 收集器的老年代版本，同样是一大单线程收集器，使用标记-整理算法。</p>
+<blockquote>
+<font color="green">Parallel Old 收集器</font>
+</blockquote>
+<p>Parallel Old 是 Parallel Scavenge 收集器的老年代版本，使用多线程和标记-整理算法。</p>
+<blockquote>
+<font color="green">CMS 收集器</font>
+</blockquote>
+<p>CMS(Concurent Mark Sweep)收集器是一种以获取最短回收停顿时间为目标的收集器。目前java集中在互联网网站或者B/S系统服务端，比较重视服务响应时间，给用户带来比较好的体验，CMS非常服务符合这类需求。</p>
+<p>CMS采用标记-清除算法，整个步骤包括：</p>
+<ul>
+<li>初始标记（CMS initial mark）<br>仅仅标记一下GC Roots能直接关联到的对象，速度很快。</li>
+<li>并发标记（CMS concurrent mark）<br>进行GC Roots Tracing的过程</li>
+<li>重新标记（CMS remark）<br>为了修正并发标记期间因用户程序继续运作而导致标志产生变动的那一部分对象的标记记录，这个阶段停顿时间一般会比初始化阶段稍长一些，但远比并发标记的时间短。</li>
+<li>并发清除（CMS concurrent sweep）</li>
+</ul>
+<p>初始标记和重新标记步骤任然需要“stop the world”。整个过程中耗时比较长的并发标记和并发清除过程是与用户线程一起工作的。</p>
+<p><img src="/GyangBlog/2019/05/27/java-jvm-gc-algorithm-1/./cms.png" alt="cms.png"></p>
+<p><strong>优点</strong><br>并发收集，低停顿</p>
+<p><strong>缺点</strong></p>
+<ul>
+<li>对CPU资源非常敏感<br>并发阶段，它不会导致用户线程停顿，但是会因为占用了一部分线程而导致应用程序变慢，总吞吐会降低。</li>
+<li>无法处理浮动垃圾，可能出现“Concurrent Mode Failure”失败而导致另一次 Full GC。</li>
+<li>产生大量空间碎片 </li>
+</ul>
+<blockquote>
+<font color="green">G1收集器</font>
+</blockquote>
+<p>G1是面向服务端的垃圾收集器。</p>
+<p><strong>特点</strong></p>
+<ul>
+<li>并行与并发<br>充分利用多CPU多核环境下的硬件优势，缩短stop the world停顿时间。</li>
+<li>分代收集</li>
+<li>空间整合<br>G1 从整体来看基于标记-整理算法实现，从局部看基于复制算法实现，运行期间不会产生内存碎片。</li>
+<li>可预测的停顿</li>
+</ul>
+<p><strong>步骤</strong></p>
+<ul>
+<li>初始标记</li>
+<li>并发标记</li>
+<li>最终标记</li>
+<li>筛选回收</li>
+</ul>
+<p>初始标记仅仅是标记下GC Roots能直接关联到的对象，并且修改TAMS（next top at mark start）的值，让下一阶段用户程序并发运行时，能在正确可用的Region中创建新对象，这一阶段需要停顿线程。<br>并发标记是从GC Roots开始对堆中对象进行可达性分析，找到存活的对象，这段耗时长，但可与用户程序并发执行。<br>最终标记是为了修正并发标记期间因用户程序继续运作而导致标记发生变化的那一部分标记记录。<br>筛选回收首先对各个Region的回收价值和成本进行排序，根据用户所期望的GC停顿时间来制定回收计划。</p>
+<h2 id="理解GC日志"><a href="#理解GC日志" class="headerlink" title="理解GC日志"></a>理解GC日志</h2><p>下面是一段GC日志：</p>
+<p><img src="/GyangBlog/2019/05/27/java-jvm-gc-algorithm-1/./GClog.png" alt="GClog.png"></p>
+<p>前面的33.125： 和 100.67： 代表GC发生的时间，是从java虚拟机启动以来经过的描述。</p>
+<p>“[GC”和”[Full GC” 说明这次垃圾收集的停顿类型，而不是用来区分新生代还是老年代GC的。有 Full 说明这次GC是发生了“stop  the world”的。</p>
+<p>“[DefNew”、”[Tenured”、”[Perm”标识GC发生区域，这里显示的区域名和使用的GC收集器是密切相关的。如果使用Serial收集器中的新生代名称”Default New Generation”，显示”[DefNew”。如果使用ParNew,则为”[Tenured”，使用Parallel Scavenge收集器，那它配套的新生代名称为”PSYoungGen” 老年代和永久代同理，名称由收集器决定。</p>
+<p>“3324K-&gt;152K(3712k)”表示 GC前该内存区域已使用容量 -&gt; GC 后该内存区域已使用容量（该内存区域总容量）。</p>
+<p>方括号之外的”3324K-&gt;152K(11904)” 表示 GC前java堆已使用容量-&gt;GC 后该java堆已使用容量（java堆总容量）。<br>“0.0025925 secs”表示内存区域GC所占用的时间，单位秒。</p>
 
             <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
             <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="false">
