@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="google" content="notranslate">
     <meta name="keywords" content="java,"> 
-    <meta name="description" content="枚举根节点GC Roots主要在全局性的引用（例如常量或者类静态属性）与执行上下文（例如栈帧中的本地变量表）中，java进行可达性分析时，对执行时间的敏感还体现在GC停顿上，因为分析工作必须在一个能,"> 
+    <meta name="description" content="HOTSPOT算法实现枚举根节点GC Roots主要在全局性的引用（例如常量或者类静态属性）与执行上下文（例如栈帧中的本地变量表）中，java进行可达性分析时，对执行时间的敏感还体现在GC停顿上，因,"> 
     <meta name="author" content="Gyang"> 
     <link rel="alternative" href="atom.xml" title="Gyang的技术笔记" type="application/atom+xml"> 
     <link rel="icon" href="/GyangBlog/img/favicon.png"> 
@@ -62,9 +62,39 @@
 
         </div>
         <div class="content markdown">
-            <h2 id="枚举根节点"><a href="#枚举根节点" class="headerlink" title="枚举根节点"></a>枚举根节点</h2><p>GC Roots主要在全局性的引用（例如常量或者类静态属性）与执行上下文（例如栈帧中的本地变量表）中，java进行可达性分析时，对执行时间的敏感还体现在GC停顿上，因为分析工作必须在一个能确保一致性（分析过程中对象引用关系不能再不断变化）的快照中进行，这点是导致GC进行时必须停顿所有的java执行线程的一个重要原因。即使是在GMS收集器中，枚举枚举根节点也要停顿。</p>
+            <h2 id="HOTSPOT算法实现"><a href="#HOTSPOT算法实现" class="headerlink" title="HOTSPOT算法实现"></a>HOTSPOT算法实现</h2><h3 id="枚举根节点"><a href="#枚举根节点" class="headerlink" title="枚举根节点"></a>枚举根节点</h3><p>GC Roots主要在全局性的引用（例如常量或者类静态属性）与执行上下文（例如栈帧中的本地变量表）中，java进行可达性分析时，对执行时间的敏感还体现在GC停顿上，因为分析工作必须在一个能确保一致性（分析过程中对象引用关系不能再不断变化）的快照中进行，这点是导致GC进行时必须停顿所有的java执行线程的一个重要原因。即使是在GMS收集器中，枚举枚举根节点也要停顿。</p>
 <p>在HotSpot中使用OopMap的数据结构来保存对象的引用，从而在执行分析时不需要一个不漏的检查完所有的执行上下文和全局的引用位置，在类加载完成的时候，HotSpot就把对象内什么偏移量上是什么类型的数据计算出来，在JIT编译过程中，也会在特定的位置记录下栈和寄存器中哪些位置是引用。</p>
-<h2 id="安全点"><a href="#安全点" class="headerlink" title="安全点"></a>安全点</h2>
+<h3 id="安全点"><a href="#安全点" class="headerlink" title="安全点"></a>安全点</h3><p>HotSpot没有为每条指令都生成OopMap，只是在特定的位置记录了这些信息，就是安全点（SafePoint）。即程序执行时并非在所有的地方都要停顿下来开始GC，只有到达安全点才能暂停。<br>SafePoint选定太少会让gc等待时间太长，太多会增加运行时的负荷。</p>
+<p>所以安全点的选定基本是以程序“是否具有让程序长时间执行的特征”为标准进行选定的-因为每条指令执行时间都非常短暂，程序不太可能因为指令流长度太长这个原因而过长时间运行。“长时间执行”的最明显特征就是指令序列复用，例如方法调用，循环跳转，异常跳转等，所有具有这些功能的指令才会产生SafePoint。</p>
+<p>对于SafePoint，另一个需要考虑的问题是如何在GC发生时让所有线程都跑到最近的安全点上在停顿下来。有两个方案：</p>
+<ul>
+<li>抢先式中断</li>
+</ul>
+<p>不需要线程的执行代码主动去配合，在GC发生时，首先把所有线程全部中断，如果发现有线程中断的地方不在安全点上，就恢复线程，让它跑到安全点上。</p>
+<ul>
+<li>主动式中断</li>
+</ul>
+<p>当GC需要中断线程的时候，不直接对线程操作，仅设置一个标志，各个线程执行时主动去轮询这个标志，发现中断标志位真就自己中断挂起。轮询标志的地方和安全点是重合的，另外在加上创建对象需要分配内存的地方。</p>
+<h3 id="安全区域"><a href="#安全区域" class="headerlink" title="安全区域"></a>安全区域</h3><p>安全区域是指在一段代码片段之中，引用关系不会发生变化。在这个区域中的任意地方开始GC都是安全的。<br>在线程执行到安全区域中的代码时，首先标识自己进入了安全区域，当在这段时间里JVM要发起GC时，就不用管标识自己为安全区域状态的线程了，在线程要离开安全区域，要检查是否已经完成了根节点枚举，如果完成了那现场就继续执行，否则必须等待直到收到可以离开安全区域的信号位置。</p>
+<h2 id="垃圾收集器"><a href="#垃圾收集器" class="headerlink" title="垃圾收集器"></a>垃圾收集器</h2><p>收集算法是内存回收的方法理论，垃圾收集器就是内存回收的具体实现。java虚拟机规范没有对垃圾收集器如何实现有规定，因此不同厂商、版本提供的垃圾收集器可能大不相同。</p>
+<blockquote>
+<p>Serial(/sɪəriəl/)收集器</p>
+</blockquote>
+<p>Serial 收集器是最基本、历史最悠久的收集器。这个收集器是一个单线程的收集器，单线程的意义不仅仅说明它是只会使用一个CPU或一条收集线程去完成垃圾收集工作，更重要的是它进行垃圾收集时，必须暂停其他所有的工作线程，直到收集完成。</p>
+<p><img src="/GyangBlog/2019/05/27/java-jvm-gc-algorithm-1/./serial.png" alt="serial.png"></p>
+<p>目前为止，Serial依然是虚拟机运行在Client模式下的默认新生代收集器。<br>优点：<br>简单，高效。对于限定单个CPU的环境来说，Serial收集器由于没有线程交互的开销，专心做垃圾收集自然可以获得最高的单线程收集小路。</p>
+<blockquote>
+<p>ParNew收集器</p>
+</blockquote>
+<p>parNew收集器其实就是Serial收集器的多线程版本，HotSpot第一款真正意义上的并发收集器</p>
+<p><img src="/GyangBlog/2019/05/27/java-jvm-gc-algorithm-1/./parnew.png" alt="parnew.png"></p>
+<p>参数：<br>-XX:+UseConcMarkSweepGC：选择后的默认新生代收集器<br>-XX:+UserParNewGC:强制指定<br>-XX:ParallelGCThreads：限制垃圾收集线程数</p>
+<blockquote>
+<p>Parallel Scavenge收集器</p>
+</blockquote>
+<p>新生代收集器、使用复制算法、并行的多线程收集器。</p>
+<p>特点：<br>关注点与其他收集器不同。CMS等收集器关注点是尽可能的缩短垃圾回收时用户线程停顿的时间，而Parallel Scavenge收集器目的则是达到一个可控制的吞吐量。吞吐量就是CPU运行用户代码时间与CPU总消耗时间的比值，即吞吐量=运行代码时间/(运行代码时间+垃圾收集时间)。</p>
+
             <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
             <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="false">
                 <source type="audio/mpeg" src>
