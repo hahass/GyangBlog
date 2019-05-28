@@ -160,7 +160,7 @@
 <p>初始标记仅仅是标记下GC Roots能直接关联到的对象，并且修改TAMS（next top at mark start）的值，让下一阶段用户程序并发运行时，能在正确可用的Region中创建新对象，这一阶段需要停顿线程。<br>并发标记是从GC Roots开始对堆中对象进行可达性分析，找到存活的对象，这段耗时长，但可与用户程序并发执行。<br>最终标记是为了修正并发标记期间因用户程序继续运作而导致标记发生变化的那一部分标记记录。<br>筛选回收首先对各个Region的回收价值和成本进行排序，根据用户所期望的GC停顿时间来制定回收计划。</p>
 <h2 id="理解GC日志"><a href="#理解GC日志" class="headerlink" title="理解GC日志"></a>理解GC日志</h2><p>下面是一段GC日志：</p>
 <p><img src="/GyangBlog/2019/05/27/java-jvm-gc-algorithm-1/./GClog.png" alt="GClog.png"></p>
-<p>前面的33.125： 和 100.67： 代表GC发生的时间，是从java虚拟机启动以来经过的描述。</p>
+<p>“33.125：” 和 “100.67：” 代表GC发生的时间，是从java虚拟机启动以来经过的描述。</p>
 <p>“[GC”和”[Full GC” 说明这次垃圾收集的停顿类型，而不是用来区分新生代还是老年代GC的。有 Full 说明这次GC是发生了“stop  the world”的。</p>
 <p>“[DefNew”、”[Tenured”、”[Perm”标识GC发生区域，这里显示的区域名和使用的GC收集器是密切相关的。如果使用Serial收集器中的新生代名称”Default New Generation”，显示”[DefNew”。如果使用ParNew,则为”[Tenured”，使用Parallel Scavenge收集器，那它配套的新生代名称为”PSYoungGen” 老年代和永久代同理，名称由收集器决定。</p>
 <p>“3324K-&gt;152K(3712k)”表示 GC前该内存区域已使用容量 -&gt; GC 后该内存区域已使用容量（该内存区域总容量）。</p>
