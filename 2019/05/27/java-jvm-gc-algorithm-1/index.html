@@ -5,12 +5,12 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gyang的技术笔记</title>
+    <title>垃圾回收器算法的实现 - Gyang的技术笔记</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="google" content="notranslate">
     <meta name="keywords" content="java,"> 
-    
+    <meta name="description" content="枚举根节点GC Roots主要在全局性的引用（例如常量或者类静态属性）与执行上下文（例如栈帧中的本地变量表）中，java进行可达性分析时，对执行时间的敏感还体现在GC停顿上，因为分析工作必须在一个能,"> 
     <meta name="author" content="Gyang"> 
     <link rel="alternative" href="atom.xml" title="Gyang的技术笔记" type="application/atom+xml"> 
     <link rel="icon" href="/GyangBlog/img/favicon.png"> 
@@ -30,26 +30,68 @@
 <body class="loading">
     <span id="config-title" style="display:none">Gyang的技术笔记</span>
     <div id="loader"></div>
-    <div id="single" class="page">
-    <div id="top">
-        <a class="icon-left image-icon" href="javascript:history.back()"></a>
-    </div>
-    <div class="section">
-        <div class="article">
-            <div class="main">
-                <div class="content">
-                
-                    <div class="set">
-  <a href="/GyangBlog/tags/JVM/" style="font-size: 36px; color: #212121">JVM</a> <a href="/GyangBlog/tags/博客/" style="font-size: 14px; color: #9e9e9e">博客</a>
-</div>
-
-                
-                </div>
+    <div id="single">
+    <div id="top" style="display: block;">
+    <div class="bar" style="width: 0;"></div>
+    <a class="icon-home image-icon" href="javascript:;" data-url="https://hahass.github.io/GyangBlog"></a>
+    <div title="播放/暂停" class="icon-play"></div>
+    <h3 class="subtitle">垃圾回收器算法的实现</h3>
+    <div class="social">
+        <!--<div class="like-icon">-->
+            <!--<a href="javascript:;" class="likeThis active"><span class="icon-like"></span><span class="count">76</span></a>-->
+        <!--</div>-->
+        <div>
+            <div class="share">
+                <a title="获取二维码" class="icon-scan" href="javascript:;"></a>
             </div>
+            <div id="qr"></div>
         </div>
     </div>
+    <div class="scrollbar"></div>
 </div>
 
+    <div class="section">
+        <div class="article">
+    <div class="main">
+        <h1 class="title">垃圾回收器算法的实现</h1>
+        <div class="stuff">
+            <span>五月 27, 2019</span>
+            
+  <ul class="post-tags-list"><li class="post-tags-list-item"><a class="post-tags-list-link" href="/GyangBlog/tags/JVM/">JVM</a></li></ul>
+
+
+        </div>
+        <div class="content markdown">
+            <h2 id="枚举根节点"><a href="#枚举根节点" class="headerlink" title="枚举根节点"></a>枚举根节点</h2><p>GC Roots主要在全局性的引用（例如常量或者类静态属性）与执行上下文（例如栈帧中的本地变量表）中，java进行可达性分析时，对执行时间的敏感还体现在GC停顿上，因为分析工作必须在一个能确保一致性（分析过程中对象引用关系不能再不断变化）的快照中进行，这点是导致GC进行时必须停顿所有的java执行线程的一个重要原因。即使是在GMS收集器中，枚举枚举根节点也要停顿。</p>
+<p>在HotSpot中使用OopMap的数据结构来保存对象的引用，从而在执行分析时不需要一个不漏的检查完所有的执行上下文和全局的引用位置，在类加载完成的时候，HotSpot就把对象内什么偏移量上是什么类型的数据计算出来，在JIT编译过程中，也会在特定的位置记录下栈和寄存器中哪些位置是引用。</p>
+<h2 id="安全点"><a href="#安全点" class="headerlink" title="安全点"></a>安全点</h2>
+            <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
+            <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="false">
+                <source type="audio/mpeg" src>
+            </audio>
+            
+                <ul id="audio-list" style="display:none">
+                    
+                        <li title="0" data-url="https://link.hhtjim.com/163/86369.mp3"></li>
+                    
+                        <li title="1" data-url="http://link.hhtjim.com/163/5146554.mp3"></li>
+                    
+                        <li title="2" data-url="http://link.hhtjim.com/qq/001faIUs4M2zna.mp3"></li>
+                    
+                </ul>
+            
+        </div>
+        
+    <div id="gitalk-container" class="comment link" data-ae="false" data-ci data-cs data-r data-o data-a data-d="false">查看评论</div>
+
+
+    </div>
+    
+</div>
+
+
+    </div>
+</div>
 </body>
 <script src="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
 <script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
