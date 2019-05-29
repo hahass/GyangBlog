@@ -238,11 +238,36 @@ JVM Statistics M,">
 </tr>
 <tr>
 <td>-F</td>
-<td>当虚拟机进程堆-dump选项没有响应时，可以使用这个选项强制生成dump快照。只在Linux/Solaris平台下有效</td>
+<td>当虚拟机进程堆-dump选项没有响应时，可以使用这个选项强制生成dump快照。只在Linux/Solaris</td>
 </tr>
 </tbody>
 </table>
-<h3 id="1-5-jhat-虚拟机堆转储快照分析工具"><a href="#1-5-jhat-虚拟机堆转储快照分析工具" class="headerlink" title="1.5 jhat:虚拟机堆转储快照分析工具"></a>1.5 jhat:虚拟机堆转储快照分析工具</h3>
+<p>平台下有效</p>
+<h3 id="1-5-jhat-虚拟机堆转储快照分析工具"><a href="#1-5-jhat-虚拟机堆转储快照分析工具" class="headerlink" title="1.5 jhat:虚拟机堆转储快照分析工具"></a>1.5 jhat:虚拟机堆转储快照分析工具</h3><p>jhat用于生成虚拟机当前时刻快照。线程快照是当前虚拟机内每一条线程正在执行的方法堆栈的集合，生成线程快照的主要目的是定位线程出现长时间停顿的原因，如线程间死锁、死循环、请求外部资源导致的长时间等。</p>
+<p>jstack命令<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jstack [option] vmid</span><br></pre></td></tr></table></figure></p>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-F</td>
+<td>当正常输出的请求不被响应时，强制输出线程堆栈</td>
+</tr>
+<tr>
+<td>-l</td>
+<td>除堆栈外，显示关于锁的附加信息</td>
+</tr>
+<tr>
+<td>-m</td>
+<td>如果调用本地方法的话，可以显示c/c++的堆栈</td>
+</tr>
+</tbody>
+</table>
+
             <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
             <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="false">
                 <source type="audio/mpeg" src>
