@@ -139,7 +139,110 @@ JVM Statistics M,">
 </tr>
 </tbody>
 </table>
-
+<h3 id="1-2-jstat-虚拟机统计信息监视工具"><a href="#1-2-jstat-虚拟机统计信息监视工具" class="headerlink" title="1.2 jstat:虚拟机统计信息监视工具"></a>1.2 jstat:虚拟机统计信息监视工具</h3><p>jstat监视虚拟机各种运行状态信息的命令行工具。可以显示本地或者远程虚拟机进程中的类装载、内存、垃圾收集、JIT编译等运行数据。</p>
+<p>jstat命令格式<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jstat [option vmid [interval[s|ms][count]]]</span><br></pre></td></tr></table></figure></p>
+<p>vmid:<br>本地：与本地VMID一致。<br>远程：格式如下<br>[protocol:][//]lvmid[@hostname[:port]/servername]</p>
+<p>interval:查询间隔。<br>count：次数。</p>
+<p>如果省略两个参数，说明只查询一次。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">每250秒查询一次进行2777垃圾收集状况，一次查询20次</span><br><span class="line">jstat -gc 2777 250 20</span><br></pre></td></tr></table></figure>
+<p>option:查询虚拟机信息，分为3类：类装载、垃圾收集、运行编译状况</p>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-class</td>
+<td>监视类装载。卸载数量、总空间以及类装载所消耗的时间</td>
+</tr>
+<tr>
+<td>-gc</td>
+<td>监视java堆状况，包括Eden区、两个Survivor区、老年代、永久代等容量、已用空间、GC时间合计等信息</td>
+</tr>
+<tr>
+<td>-gccapacity</td>
+<td>监视内容与-gc基本相同，但是输出主要关注java堆各个区域使用的最大、最小空间</td>
+</tr>
+<tr>
+<td>-gcutil</td>
+<td>监视内容与-gc基本相同，但是输出主要关注已使用的空间占总空间的百分比</td>
+</tr>
+<tr>
+<td>-gccause</td>
+<td>与-gcutil功能一样，但是会额外输出导致上一次GC产生的原因</td>
+</tr>
+<tr>
+<td>-gcnew</td>
+<td>监视新生代GC状况</td>
+</tr>
+<tr>
+<td>-gcnewcapacity</td>
+<td>监视内容与-gcnew基本相同，输出主要关注使用到的最大、最小空间</td>
+</tr>
+<tr>
+<td>-gcold</td>
+<td>监视老年代GC状况</td>
+</tr>
+<tr>
+<td>-gcoldcapacity</td>
+<td>监视内容与-gcold相同，输出主要关注使用到的最大、最小空间</td>
+</tr>
+<tr>
+<td>-gcpermcapacity</td>
+<td>输出永久代使用到的最大、最小空间</td>
+</tr>
+<tr>
+<td>-compiler</td>
+<td>输出JIT编译器编译过的方法和耗时等信息</td>
+</tr>
+<tr>
+<td>-printcompilation</td>
+<td>输出已近被JIT编译方法</td>
+</tr>
+</tbody>
+</table>
+<h3 id="1-3-jinfo-java配置信息工具"><a href="#1-3-jinfo-java配置信息工具" class="headerlink" title="1.3 jinfo:java配置信息工具"></a>1.3 jinfo:java配置信息工具</h3><p>jinfo的作用是实时的查看和调整虚拟机各项参数</p>
+<p>jinfo命令<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jinfo [option] pid</span><br></pre></td></tr></table></figure></p>
+<h3 id="1-4-jmap-java内存印象工具"><a href="#1-4-jmap-java内存印象工具" class="headerlink" title="1.4 jmap:java内存印象工具"></a>1.4 jmap:java内存印象工具</h3><p>jmap用于生成堆转储快照（heapdump/dump文件）。还可以查询finalize执行队列、java堆和永久代的详细信息，如空间使用率、当前用的哪种收集器等。</p>
+<p>jmap命令<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jmap [option] vmid</span><br></pre></td></tr></table></figure></p>
+<table>
+<thead>
+<tr>
+<th>选项</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-dump</td>
+<td>生成java堆转储快照，格式为-dump:[live,]format=b,file=&lt;filename>,其中live子参数说明是否只dump出存活的对象</td>
+</tr>
+<tr>
+<td>-finalizerinfo</td>
+<td>显示在F-Queue中等待Finalizer线程执行finalize方法的对象。只在Linux/Solaris平台下有效</td>
+</tr>
+<tr>
+<td>-heap</td>
+<td>显示java堆详细信息，如使用哪种回收器、参数配置、分代状况等。只在Linux/Solaris平台下有效</td>
+</tr>
+<tr>
+<td>-histo</td>
+<td>显示堆中对象统计信息，包括类、实例数量、合计容量</td>
+</tr>
+<tr>
+<td>-permstat</td>
+<td>以ClassLoader为统计口径显示永久代内存状态。只在Linux/Solaris平台下有效</td>
+</tr>
+<tr>
+<td>-F</td>
+<td>当虚拟机进程堆-dump选项没有响应时，可以使用这个选项强制生成dump快照。只在Linux/Solaris平台下有效</td>
+</tr>
+</tbody>
+</table>
+<h3 id="1-5-jhat-虚拟机堆转储快照分析工具"><a href="#1-5-jhat-虚拟机堆转储快照分析工具" class="headerlink" title="1.5 jhat:虚拟机堆转储快照分析工具"></a>1.5 jhat:虚拟机堆转储快照分析工具</h3>
             <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
             <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="false">
                 <source type="audio/mpeg" src>
