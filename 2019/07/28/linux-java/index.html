@@ -5,16 +5,13 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>搭建个人博客 - Gyang的技术笔记</title>
+    <title>linux 上配置java环境 - Gyang的技术笔记</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="google" content="notranslate">
     <meta name="keywords" content="java,"> 
-    <meta name="description" content="第一次搭建自己的博客，所以想要记录下，搭建的完整过程，方便想要搭建的小白少走弯路。
-所需材料
-博客的框架使用的是 hexo
-hexo 需要依托在 node.js ，所以需要先安装nodejs
-Git,"> 
+    <meta name="description" content="作为一名java开发程序员，不会配置java环境就out了，你还不会的话，跟着我一起学习一下吧
+1.首先需要先到jdk官网上下载一个jdkhttps://www.oracle.com/technet,"> 
     <meta name="author" content="Gyang"> 
     <link rel="alternative" href="atom.xml" title="Gyang的技术笔记" type="application/atom+xml"> 
     <link rel="icon" href="/GyangBlog/img/favicon.png"> 
@@ -39,7 +36,7 @@ Git,">
     <div class="bar" style="width: 0;"></div>
     <a class="icon-home image-icon" href="javascript:;" data-url="https://hahass.github.io/GyangBlog"></a>
     <div title="播放/暂停" class="icon-play"></div>
-    <h3 class="subtitle">搭建个人博客</h3>
+    <h3 class="subtitle">linux 上配置java环境</h3>
     <div class="social">
         <!--<div class="like-icon">-->
             <!--<a href="javascript:;" class="likeThis active"><span class="icon-like"></span><span class="count">76</span></a>-->
@@ -57,43 +54,28 @@ Git,">
     <div class="section">
         <div class="article">
     <div class="main">
-        <h1 class="title">搭建个人博客</h1>
+        <h1 class="title">linux 上配置java环境</h1>
         <div class="stuff">
-            <span>五月 17, 2019</span>
+            <span>七月 28, 2019</span>
             
-  <ul class="post-tags-list"><li class="post-tags-list-item"><a class="post-tags-list-link" href="/GyangBlog/tags/博客/">博客</a></li></ul>
+  <ul class="post-tags-list"><li class="post-tags-list-item"><a class="post-tags-list-link" href="/GyangBlog/tags/linux/">linux</a></li></ul>
 
 
         </div>
         <div class="content markdown">
-            <p>第一次搭建自己的博客，所以想要记录下，搭建的完整过程，方便想要搭建的小白少走弯路。</p>
-<h2 id="所需材料"><a href="#所需材料" class="headerlink" title="所需材料"></a>所需材料</h2><ul>
-<li>博客的框架使用的是 hexo</li>
-<li>hexo 需要依托在 node.js ，所以需要先安装nodejs</li>
-<li>GitHubPage: 网站在gitHub上托管</li>
-<li>git </li>
-</ul>
-<h2 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h2><h3 id="1-安装node-js"><a href="#1-安装node-js" class="headerlink" title="1.安装node.js"></a>1.安装node.js</h3><p>打开官网：<a href="https://nodejs.org/en/" target="_blank" rel="noopener">https://nodejs.org/en/</a> , 下载稳定版本的进行安装。</p>
-<p><img src="/GyangBlog/2019/05/17/firstBlog/./nodejs.png" alt="nodejs.png"></p>
-<p>安装过程 我就忽略了哈， 这个不会 就真的小白了，哈哈（其实是作者懒的在操作一遍   :laughing: ， 有空补上）</p>
-<h3 id="2-安装-git"><a href="#2-安装-git" class="headerlink" title="2.安装 git"></a>2.安装 git</h3><p>因为需要将我们的静态网站，部署到github上， 所有需要现在本地安装git.</p>
-<h3 id="3-下载hexo"><a href="#3-下载hexo" class="headerlink" title="3.下载hexo"></a>3.下载hexo</h3><p>现在本地建立一个文件夹，进入文件夹，右键选择 Git bash here</p>
-<h3 id="4-常用操作"><a href="#4-常用操作" class="headerlink" title="4.常用操作"></a>4.常用操作</h3><ul>
-<li><p>创建新的文章</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo n &quot;firstBlog&quot;</span><br></pre></td></tr></table></figure>
-<p>  会在_posts文件加下创建出一个文件夹（存储文章中图片），和一个md文件,使用下面代码可以引入图片</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">![newfirstBlog.png](./newfirstBlog.png)</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-<p><img src="/GyangBlog/2019/05/17/firstBlog/./newfirstBlog.png" alt="newfirstBlog.png"></p>
-<ul>
-<li><p>开启本地服务</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo s</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>编译上传文件</p>
-</li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hexo clean</span><br><span class="line">hexo d &apos;&amp;&amp;&apos;hexo g</span><br></pre></td></tr></table></figure>
+            <p>作为一名java开发程序员，不会配置java环境就out了，你还不会的话，跟着我一起学习一下吧</p>
+<h3 id="1-首先需要先到jdk官网上下载一个jdk"><a href="#1-首先需要先到jdk官网上下载一个jdk" class="headerlink" title="1.首先需要先到jdk官网上下载一个jdk"></a>1.首先需要先到jdk官网上下载一个jdk</h3><p><a href="https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html" target="_blank" rel="noopener">https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html</a></p>
+<p><img src="/GyangBlog/2019/07/28/linux-java/./jdk.png" alt="jdk.png"></p>
+<p>我现在的是jdk-8u221-linux-x64.tar.gz</p>
+<h3 id="2-将下载的文件复制到服务器上-并解压到-usr-java目录下"><a href="#2-将下载的文件复制到服务器上-并解压到-usr-java目录下" class="headerlink" title="2.将下载的文件复制到服务器上 并解压到 /usr/java目录下"></a>2.将下载的文件复制到服务器上 并解压到 /usr/java目录下</h3><p>解压命令</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tar -zxvf jdk-8u221-linux-x64.tar.gz /usr/java</span><br></pre></td></tr></table></figure>
+<h3 id="3-配置环境变量"><a href="#3-配置环境变量" class="headerlink" title="3.配置环境变量"></a>3.配置环境变量</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/profile</span><br></pre></td></tr></table></figure>
+<p>在文档中添加如下配置信息<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">export JAVA_HOME=/usr/java/jdk1.8.0_221</span><br><span class="line">export CLASSPATH=.:$JAVA_HOME/jre/lib/rt.jar:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar</span><br><span class="line">export PATH=$JAVA_HOME/bin:$PATH</span><br></pre></td></tr></table></figure></p>
+<p>保存退出<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">:wq</span><br></pre></td></tr></table></figure></p>
+<h3 id="4-重启配置文件"><a href="#4-重启配置文件" class="headerlink" title="4.重启配置文件"></a>4.重启配置文件</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">source /etc/profile</span><br></pre></td></tr></table></figure>
+<h3 id="5-查看是否安装成功"><a href="#5-查看是否安装成功" class="headerlink" title="5.查看是否安装成功"></a>5.查看是否安装成功</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -version</span><br></pre></td></tr></table></figure>
+<p>看到下面信息就是安装成功了哦</p>
+<p><img src="/GyangBlog/2019/07/28/linux-java/./jdkv.png" alt="jdkv.png"></p>
 
             <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
             <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="false">
