@@ -5,13 +5,13 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>spring cloud 学习与实践之服务注册于发现（eureka） - Gyang的技术笔记</title>
+    <title>linux 上配置rabbitmq - Gyang的技术笔记</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="google" content="notranslate">
     <meta name="keywords" content="java,"> 
-    <meta name="description" content="微服务服务注册与发现本章节通过eureka 来学习服务内容创建一个eureka项目##
-"> 
+    <meta name="description" content="1.在服务器先下载需要安装的软件
+erlangrabbitmq 是erlang语言开发的，所以安装rabbitmq需要先安装好erlang环境wget www.rabbitmq.com/releas,"> 
     <meta name="author" content="Gyang"> 
     <link rel="alternative" href="atom.xml" title="Gyang的技术笔记" type="application/atom+xml"> 
     <link rel="icon" href="/GyangBlog/img/favicon.png"> 
@@ -36,7 +36,7 @@
     <div class="bar" style="width: 0;"></div>
     <a class="icon-home image-icon" href="javascript:;" data-url="https://hahass.github.io/GyangBlog"></a>
     <div title="播放/暂停" class="icon-play"></div>
-    <h3 class="subtitle">spring cloud 学习与实践之服务注册于发现（eureka）</h3>
+    <h3 class="subtitle">linux 上配置rabbitmq</h3>
     <div class="social">
         <!--<div class="like-icon">-->
             <!--<a href="javascript:;" class="likeThis active"><span class="icon-like"></span><span class="count">76</span></a>-->
@@ -54,16 +54,31 @@
     <div class="section">
         <div class="article">
     <div class="main">
-        <h1 class="title">spring cloud 学习与实践之服务注册于发现（eureka）</h1>
+        <h1 class="title">linux 上配置rabbitmq</h1>
         <div class="stuff">
-            <span>七月 20, 2019</span>
+            <span>七月 29, 2019</span>
             
-  <ul class="post-tags-list"><li class="post-tags-list-item"><a class="post-tags-list-link" href="/GyangBlog/tags/springcloud/">springcloud</a></li></ul>
+  <ul class="post-tags-list"><li class="post-tags-list-item"><a class="post-tags-list-link" href="/GyangBlog/tags/linux/">linux</a></li></ul>
 
 
         </div>
         <div class="content markdown">
-            <h3 id="微服务"><a href="#微服务" class="headerlink" title="微服务"></a>微服务</h3><h3 id="服务注册与发现"><a href="#服务注册与发现" class="headerlink" title="服务注册与发现"></a>服务注册与发现</h3><h4 id="本章节通过eureka-来学习服务内容"><a href="#本章节通过eureka-来学习服务内容" class="headerlink" title="本章节通过eureka 来学习服务内容"></a>本章节通过eureka 来学习服务内容</h4><h5 id="创建一个eureka项目"><a href="#创建一个eureka项目" class="headerlink" title="创建一个eureka项目"></a>创建一个eureka项目</h5><p>##</p>
+            <h2 id="1-在服务器先下载需要安装的软件"><a href="#1-在服务器先下载需要安装的软件" class="headerlink" title="1.在服务器先下载需要安装的软件"></a>1.在服务器先下载需要安装的软件</h2><ul>
+<li>erlang<br>rabbitmq 是erlang语言开发的，所以安装rabbitmq需要先安装好erlang环境<br>wget <a href="http://www.rabbitmq.com/releases/erlang/erlang-18.3-1.el7.centos.x86_64.rpm" target="_blank" rel="noopener">www.rabbitmq.com/releases/erlang/erlang-18.3-1.el7.centos.x86_64.rpm</a></li>
+<li><p>socat<br>安装rabbitmq可能需要认证<br>wget <a href="http://repo.iotti.biz/CentOS/7/x86_64/socat-1.7.3.2-5.el7.lux.x86_64.rpm" target="_blank" rel="noopener">http://repo.iotti.biz/CentOS/7/x86_64/socat-1.7.3.2-5.el7.lux.x86_64.rpm</a></p>
+</li>
+<li><p>rabbitmq<br>rabbitmq安装包<br>wget <a href="http://www.rabbitmq.com/releases/rabbitmq-server/v3.6.5/rabbitmq-server-3.6.5-1.noarch.rpm" target="_blank" rel="noopener">www.rabbitmq.com/releases/rabbitmq-server/v3.6.5/rabbitmq-server-3.6.5-1.noarch.rpm</a></p>
+<h2 id="2-依次安装软件"><a href="#2-依次安装软件" class="headerlink" title="2. 依次安装软件"></a>2. 依次安装软件</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">rpm -ivh erlang-18.3-1.el7.centos.x86_64.rpm</span><br><span class="line">rpm -ivh socat-1.7.3.2-5.el7.lux.x86_64.rpm</span><br><span class="line">rpm -ivh rabbitmq-server-3.6.5-1.noarch.rpm</span><br></pre></td></tr></table></figure>
+<h2 id="3-修改配置文件"><a href="#3-修改配置文件" class="headerlink" title="3.修改配置文件"></a>3.修改配置文件</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"> 配置文件：</span><br><span class="line">vim /usr/lib/rabbitmq/lib/rabbitmq_server-3.6.5/ebin/rabbit.app</span><br><span class="line">比如修改密码、配置等等，例如：loopback_users 中的 &lt;&lt;&quot;guest&quot;&gt;&gt;,只保留guest</span><br></pre></td></tr></table></figure>
+<h2 id="4-启动rabbitmq"><a href="#4-启动rabbitmq" class="headerlink" title="4.启动rabbitmq"></a>4.启动rabbitmq</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rabbitmq-server start &amp;</span><br></pre></td></tr></table></figure>
+<h2 id="6-window访问不了虚拟机上的rabbitmq"><a href="#6-window访问不了虚拟机上的rabbitmq" class="headerlink" title="6.window访问不了虚拟机上的rabbitmq"></a>6.window访问不了虚拟机上的rabbitmq</h2><p>查了一下，虚拟机的ip可以ping的通，但是rabbitmq就是访问不了，在linux系统上可以正常访问，所以怀疑是linux中的防火墙问题，关闭防火墙(因为是自己本地玩的，所以就直接关闭了)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl stop firewalld</span><br></pre></td></tr></table></figure>
+<p>输入地址</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://192.168.xxx.xxx:15672</span><br></pre></td></tr></table></figure>
+<p>终于可以访问了</p>
+<p><img src="/GyangBlog/2019/07/29/linux-rabbitmq/./web.png" alt="web.png"></p>
+</li>
+</ul>
 
             <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
             <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="false">
